@@ -170,7 +170,7 @@ class Output(ActorBaseFT):
         return token['accessToken']
 
     def _get_endpoint_orgid(self, token):
-        # this should look like 
+        # this should look like
         # {
         # u'AadTenantId': u'bb19bb5c-0e8d-4a73-bd6b-d015b298ecd7',
         # u'ServiceUri': u'https://partnerstifrontend-eus-prd.trafficmanager.net/threatintel/indicators',
@@ -637,6 +637,11 @@ class OutputBatch(ActorBaseFT):
                     if status_code >= 400 and status_code < 500:
                         LOG.error('{}: error in request - {}'.format(self.name, e.response.text))
                         self.statistics['error.invalid_request'] += 1
+
+                        if result.status_code == 429:
+                            LOG.error('{}: sleeping for 10 seconds to allow API call limit to reset - {}'.format(self.name, e.response.text))
+                            gevent.sleep(10)
+
                         break
 
                     self.statistics['error.submit'] += 1
@@ -650,14 +655,25 @@ class OutputBatch(ActorBaseFT):
                 except WDATPResponseException as e:
                     LOG.exception('{} - error submitting indicators - {}'.format(self.name, str(e)))
                     self.statistics['error.submit'] += 1
-                    break                    
-                    
+
+                    if result.status_code == 429:
+                        LOG.error('{}: sleeping for 10 seconds to allow API call limit to reset - {}'.format(self.name, e.response.text))
+                        gevent.sleep(10)
+
+                    break
+
                 except Exception as e:
                     LOG.exception('{} - error submitting indicators - {}'.format(self.name, str(e)))
                     self.statistics['error.submit'] += 1
+
+                    if result.status_code == 429:
+                        LOG.error('{}: sleeping for 10 seconds to allow API call limit to reset - {}'.format(self.name, e.response.text))
+                        gevent.sleep(10)
+
                     retries += 1
                     if retries > 5:
                         break
+
                     gevent.sleep(120.0)
 
             gevent.sleep(0.1)
