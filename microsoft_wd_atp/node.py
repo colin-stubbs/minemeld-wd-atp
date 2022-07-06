@@ -707,8 +707,9 @@ class OutputBatch(ActorBaseFT):
         if "File" in type_ and self.action == 'Block':
             self.action = 'BlockAndRemediate'
 
-        #expiration = datetime.utcnow() + timedelta(days=365)
-
+        # Always set a default expiry to ensure we don't wind up with stale garbage in the API, given it has a 15,000 indicator count limitation...
+        expiration = datetime.utcnow() + timedelta(days=365)
+        expiration = expiration.isoformat() + 'Z' # expiration is always in UTC
 
         result = []
         for i in indicators:
@@ -724,10 +725,15 @@ class OutputBatch(ActorBaseFT):
             if self.severity is not None:
                 d['severity'] = self.severity
 
+            # calculate a near future expiry time and set that on the indicator to let the API remove the indicator itself
+            # NOTE: This really just allows the code to avoid performing a GET request to find the indicator ID, then doing a DELETE request.
+            # NOTE: Future enhancement, perform GET and then do DELETE to ensure indicator is removed immediately
             if expired:
-                expiration = datetime.utcnow() + timedelta(seconds=300)
+                expiration = datetime.utcnow() + timedelta(seconds=60)
                 expiration = expiration.isoformat() + 'Z' # expiration is always in UTC
-                d['expirationTime'] = expiration
+
+            # always set expirationTime
+            d['expirationTime'] = expiration
 
             result.append(d)
 
