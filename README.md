@@ -4,6 +4,8 @@ MineMeld nodes for Microsoft Defender for Endpoint API aka. Windows Defender ATP
 
 This uses the API calls described here: https://docs.microsoft.com/en-us/microsoft-365/security/defender-endpoint/ti-indicator?view=o365-worldwide
 
+**NOTE**: The repo at https://github.com/PaloAltoNetworks/minemeld-wd-atp already has issues and pull requests which have not been responded to by anyone from @PaloAltoNetworks, so I'm not going to bother wasting my time creating issues or issuing a pull request at this point.
+
 # Notes
 
 ## Defender for Endpoint API Indicator Limits
